@@ -25,7 +25,8 @@ __pycache__/
 *.7z
 
 # Generated output images & logs
-inference/output/
+inference/output/*
+!inference/output/benchmark_results.json
 inference-annotation/output/
 *_detection_log.csv
 detection_log.txt

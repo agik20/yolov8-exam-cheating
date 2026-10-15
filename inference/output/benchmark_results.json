@@ -1,0 +1,469 @@
+{
+  "environment": {
+    "platform": "Windows",
+    "platform_release": "11",
+    "hostname": "Heimtech",
+    "python_version": "3.14.0 (tags/v3.14.0:ebf955d, Oct  7 2025, 10:15:03) [MSC v.1944 64 bit (AMD64)]",
+    "python_impl": "cpython",
+    "os": "Windows 10.0.26200 AMD64",
+    "torch_version": "2.11.0+cpu",
+    "torchvision_version": "0.26.0+cpu",
+    "cuda_available": false,
+    "cuda_version": null,
+    "gpu_name": null,
+    "gpu_memory_mb": null,
+    "ultralytics_version": "8.4.46",
+    "opencv_version": "4.13.0",
+    "numpy_version": "2.3.5",
+    "flask_version": "3.1.2",
+    "cpu_info": null,
+    "ram_info": null,
+    "benchmark": {
+      "warmup_seconds": 5,
+      "duration_seconds": 60,
+      "steady_frames": 1725,
+      "warmup_frames": 150
+    }
+  },
+  "input": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30.0,
+    "duration_s": 57.5
+  },
+  "frames": {
+    "input": 1725,
+    "processed": 1725,
+    "output": 1,
+    "dropped": 1724
+  },
+  "timing_ms": {
+    "frame": {
+      "count": 1725,
+      "mean": 418.35,
+      "median": 393.213,
+      "p95": 568.543,
+      "p99": 894.397,
+      "max": 2054.941
+    },
+    "pose_inference": {
+      "count": 1725,
+      "mean": 151.272,
+      "median": 143.413,
+      "p95": 198.025,
+      "p99": 264.069,
+      "max": 865.52
+    },
+    "pose_postprocess": {
+      "count": 1725,
+      "mean": 0.891,
+      "median": 0.821,
+      "p95": 1.011,
+      "p99": 3.849,
+      "max": 14.308
+    },
+    "pose_event": {
+      "count": 1738,
+      "mean": 0.072,
+      "median": 0.008,
+      "p95": 0.01,
+      "p99": 2.997,
+      "max": 13.303
+    },
+    "object_inference": {
+      "count": 1725,
+      "mean": 263.956,
+      "median": 246.689,
+      "p95": 352.393,
+      "p99": 523.369,
+      "max": 1758.497
+    },
+    "object_postprocess": {
+      "count": 1725,
+      "mean": 0.347,
+      "median": 0.329,
+      "p95": 0.493,
+      "p99": 0.598,
+      "max": 4.373
+    },
+    "object_event": {
+      "count": 449,
+      "mean": 0.031,
+      "median": 0.008,
+      "p95": 0.012,
+      "p99": 0.048,
+      "max": 3.813
+    },
+    "evidence": {
+      "count": 33,
+      "mean": 3.307,
+      "median": 2.665,
+      "p95": 4.266,
+      "p99": 12.878,
+      "max": 12.878
+    },
+    "jpeg_encode": {
+      "count": 0,
+      "mean": 0.0,
+      "median": 0.0,
+      "p95": 0.0,
+      "p99": 0.0,
+      "max": 0.0
+    }
+  },
+  "throughput": {
+    "processed_fps": 2.365,
+    "output_fps": 0.001,
+    "input_to_processing_ratio": 1.0
+  },
+  "queue": {
+    "insert_attempts": 1725,
+    "insert_success": 1,
+    "full_events": 1724,
+    "dropped": 1724
+  },
+  "evidence_events": [
+    {
+      "timestamp": "2026-10-09T15:16:12.712891",
+      "frame_idx": 7,
+      "track_id": 4,
+      "class_name": "see-friends-work",
+      "confidence": 0.8845,
+      "detection_type": "pose",
+      "save_duration_ms": 3.239
+    },
+    {
+      "timestamp": "2026-10-09T15:16:12.716815",
+      "frame_idx": 7,
+      "track_id": 9,
+      "class_name": "see-friends-work",
+      "confidence": 0.4387,
+      "detection_type": "pose",
+      "save_duration_ms": 3.056
+    },
+    {
+      "timestamp": "2026-10-09T15:16:13.122735",
+      "frame_idx": 7,
+      "track_id": 3,
+      "class_name": "smartphone",
+      "confidence": 0.6233,
+      "detection_type": "object",
+      "save_duration_ms": 3.428
+    },
+    {
+      "timestamp": "2026-10-09T15:17:43.714503",
+      "frame_idx": 128,
+      "track_id": 4,
+      "class_name": "see-friends-work",
+      "confidence": 0.8845,
+      "detection_type": "pose",
+      "save_duration_ms": 3.181
+    },
+    {
+      "timestamp": "2026-10-09T15:17:45.211180",
+      "frame_idx": 129,
+      "track_id": 3,
+      "class_name": "smartphone",
+      "confidence": 0.6233,
+      "detection_type": "object",
+      "save_duration_ms": 2.738
+    },
+    {
+      "timestamp": "2026-10-09T15:17:59.577638",
+      "frame_idx": 151,
+      "track_id": 9,
+      "class_name": "see-friends-work",
+      "confidence": 0.4387,
+      "detection_type": "pose",
+      "save_duration_ms": 2.932
+    },
+    {
+      "timestamp": "2026-10-09T15:18:11.198234",
+      "frame_idx": 177,
+      "track_id": 8,
+      "class_name": "see-friends-work",
+      "confidence": 0.4072,
+      "detection_type": "pose",
+      "save_duration_ms": 2.634
+    },
+    {
+      "timestamp": "2026-10-09T15:19:14.050309",
+      "frame_idx": 289,
+      "track_id": 4,
+      "class_name": "see-friends-work",
+      "confidence": 0.8845,
+      "detection_type": "pose",
+      "save_duration_ms": 12.878
+    },
+    {
+      "timestamp": "2026-10-09T15:19:15.149757",
+      "frame_idx": 290,
+      "track_id": 3,
+      "class_name": "smartphone",
+      "confidence": 0.6233,
+      "detection_type": "object",
+      "save_duration_ms": 2.727
+    },
+    {
+      "timestamp": "2026-10-09T15:19:32.168720",
+      "frame_idx": 321,
+      "track_id": 3,
+      "class_name": "provide-object",
+      "confidence": 0.7385,
+      "detection_type": "pose",
+      "save_duration_ms": 3.32
+    },
+    {
+      "timestamp": "2026-10-09T15:19:41.519761",
+      "frame_idx": 341,
+      "track_id": 8,
+      "class_name": "see-friends-work",
+      "confidence": 0.4072,
+      "detection_type": "pose",
+      "save_duration_ms": 2.49
+    },
+    {
+      "timestamp": "2026-10-09T15:19:59.638689",
+      "frame_idx": 380,
+      "track_id": 9,
+      "class_name": "see-friends-work",
+      "confidence": 0.4387,
+      "detection_type": "pose",
+      "save_duration_ms": 2.669
+    },
+    {
+      "timestamp": "2026-10-09T15:20:36.594815",
+      "frame_idx": 468,
+      "track_id": 2,
+      "class_name": "provide-object",
+      "confidence": 0.3051,
+      "detection_type": "pose",
+      "save_duration_ms": 2.841
+    },
+    {
+      "timestamp": "2026-10-09T15:20:43.706646",
+      "frame_idx": 486,
+      "track_id": 5,
+      "class_name": "see-friends-work",
+      "confidence": 0.349,
+      "detection_type": "pose",
+      "save_duration_ms": 2.37
+    },
+    {
+      "timestamp": "2026-10-09T15:21:05.415652",
+      "frame_idx": 537,
+      "track_id": 37,
+      "class_name": "see-friends-work",
+      "confidence": 0.6598,
+      "detection_type": "pose",
+      "save_duration_ms": 2.546
+    },
+    {
+      "timestamp": "2026-10-09T15:21:21.543014",
+      "frame_idx": 577,
+      "track_id": 1,
+      "class_name": "see-friends-work",
+      "confidence": 0.7776,
+      "detection_type": "pose",
+      "save_duration_ms": 3.143
+    },
+    {
+      "timestamp": "2026-10-09T15:21:41.904368",
+      "frame_idx": 627,
+      "track_id": 47,
+      "class_name": "see-friends-work",
+      "confidence": 0.6123,
+      "detection_type": "pose",
+      "save_duration_ms": 2.88
+    },
+    {
+      "timestamp": "2026-10-09T15:21:55.005047",
+      "frame_idx": 660,
+      "track_id": 8,
+      "class_name": "see-friends-work",
+      "confidence": 0.4072,
+      "detection_type": "pose",
+      "save_duration_ms": 2.535
+    },
+    {
+      "timestamp": "2026-10-09T15:22:03.241110",
+      "frame_idx": 678,
+      "track_id": 51,
+      "class_name": "see-friends-work",
+      "confidence": 0.7654,
+      "detection_type": "pose",
+      "save_duration_ms": 2.915
+    },
+    {
+      "timestamp": "2026-10-09T15:22:35.672717",
+      "frame_idx": 759,
+      "track_id": 37,
+      "class_name": "see-friends-work",
+      "confidence": 0.6598,
+      "detection_type": "pose",
+      "save_duration_ms": 2.31
+    },
+    {
+      "timestamp": "2026-10-09T15:22:56.947000",
+      "frame_idx": 812,
+      "track_id": 1,
+      "class_name": "provide-object",
+      "confidence": 0.7776,
+      "detection_type": "pose",
+      "save_duration_ms": 4.266
+    },
+    {
+      "timestamp": "2026-10-09T15:23:02.639390",
+      "frame_idx": 823,
+      "track_id": 54,
+      "class_name": "smartphone",
+      "confidence": 0.3807,
+      "detection_type": "object",
+      "save_duration_ms": 3.324
+    },
+    {
+      "timestamp": "2026-10-09T15:23:16.471003",
+      "frame_idx": 858,
+      "track_id": 57,
+      "class_name": "see-friends-work",
+      "confidence": 0.3065,
+      "detection_type": "pose",
+      "save_duration_ms": 2.267
+    },
+    {
+      "timestamp": "2026-10-09T15:23:33.114924",
+      "frame_idx": 900,
+      "track_id": 6,
+      "class_name": "provide-object",
+      "confidence": 0.3319,
+      "detection_type": "pose",
+      "save_duration_ms": 2.568
+    },
+    {
+      "timestamp": "2026-10-09T15:23:41.977480",
+      "frame_idx": 922,
+      "track_id": 8,
+      "class_name": "see-friends-work",
+      "confidence": 0.4072,
+      "detection_type": "pose",
+      "save_duration_ms": 2.77
+    },
+    {
+      "timestamp": "2026-10-09T15:24:27.900586",
+      "frame_idx": 1035,
+      "track_id": 64,
+      "class_name": "see-friends-work",
+      "confidence": 0.3839,
+      "detection_type": "pose",
+      "save_duration_ms": 2.599
+    },
+    {
+      "timestamp": "2026-10-09T15:24:39.795297",
+      "frame_idx": 1065,
+      "track_id": 65,
+      "class_name": "see-friends-work",
+      "confidence": 0.3496,
+      "detection_type": "pose",
+      "save_duration_ms": 12.034
+    },
+    {
+      "timestamp": "2026-10-09T15:25:34.616483",
+      "frame_idx": 1200,
+      "track_id": 57,
+      "class_name": "see-friends-work",
+      "confidence": 0.3065,
+      "detection_type": "pose",
+      "save_duration_ms": 2.303
+    },
+    {
+      "timestamp": "2026-10-09T15:26:04.131035",
+      "frame_idx": 1272,
+      "track_id": 64,
+      "class_name": "see-friends-work",
+      "confidence": 0.3839,
+      "detection_type": "pose",
+      "save_duration_ms": 2.765
+    },
+    {
+      "timestamp": "2026-10-09T15:26:10.046394",
+      "frame_idx": 1287,
+      "track_id": 65,
+      "class_name": "see-friends-work",
+      "confidence": 0.3496,
+      "detection_type": "pose",
+      "save_duration_ms": 2.411
+    },
+    {
+      "timestamp": "2026-10-09T15:27:58.642508",
+      "frame_idx": 1557,
+      "track_id": 64,
+      "class_name": "see-friends-work",
+      "confidence": 0.3839,
+      "detection_type": "pose",
+      "save_duration_ms": 2.665
+    },
+    {
+      "timestamp": "2026-10-09T15:28:42.298359",
+      "frame_idx": 1664,
+      "track_id": 65,
+      "class_name": "see-friends-work",
+      "confidence": 0.3496,
+      "detection_type": "pose",
+      "save_duration_ms": 2.184
+    },
+    {
+      "timestamp": "2026-10-09T15:29:28.810639",
+      "frame_idx": 1779,
+      "track_id": 64,
+      "class_name": "see-friends-work",
+      "confidence": 0.3839,
+      "detection_type": "pose",
+      "save_duration_ms": 2.581
+    },
+    {
+      "timestamp": "2026-10-09T15:29:30.003013",
+      "frame_idx": 1782,
+      "track_id": 57,
+      "class_name": "see-friends-work",
+      "confidence": 0.3065,
+      "detection_type": "pose",
+      "save_duration_ms": 2.401
+    },
+    {
+      "timestamp": "2026-10-09T15:29:30.794950",
+      "frame_idx": 1784,
+      "track_id": 85,
+      "class_name": "provide-object",
+      "confidence": 0.8366,
+      "detection_type": "pose",
+      "save_duration_ms": 2.869
+    },
+    {
+      "timestamp": "2026-10-09T15:29:50.718172",
+      "frame_idx": 1834,
+      "track_id": 6,
+      "class_name": "see-friends-work",
+      "confidence": 0.3319,
+      "detection_type": "pose",
+      "save_duration_ms": 2.512
+    },
+    {
+      "timestamp": "2026-10-09T15:29:54.216581",
+      "frame_idx": 1842,
+      "track_id": 84,
+      "class_name": "smartphone",
+      "confidence": 0.3937,
+      "detection_type": "object",
+      "save_duration_ms": 2.595
+    },
+    {
+      "timestamp": "2026-10-09T15:29:57.316658",
+      "frame_idx": 1850,
+      "track_id": 69,
+      "class_name": "see-friends-work",
+      "confidence": 0.3672,
+      "detection_type": "pose",
+      "save_duration_ms": 2.839
+    }
+  ]
+}
