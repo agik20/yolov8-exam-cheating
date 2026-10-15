@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.pytest_cache/
+
+# Model weights / large binaries
+*.pt
+*.onnx
+*.bin
+*.safetensors
+*.weights
+
+# Video files
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# Generated output images & logs
+inference/output/
+inference-annotation/output/
+*_detection_log.csv
+detection_log.txt
+detection_log*.txt
+
+# Datasets (if present at root level)
+datasets/
+data/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+
+# Environment
+.env
+*.env
+
+# Logs
+*.log
+logs/
+
+# Work-in-progress planning / audit docs (not meant for repo)
+PHASE2A_EVENT_ARCHITECTURE.md
+PHASE2C1_GROUND_TRUTH.md
+audit_py_section.md
+implementation-plan.md
+inference-audit.md
+CHANGELOG_FIXES.md
