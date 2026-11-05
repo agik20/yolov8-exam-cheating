@@ -250,6 +250,42 @@ class ConfidenceStats:
 
 
 # ---------------------------------------------------------------------------
+# TrackContinuity
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class TrackContinuity:
+    """Phase 2E-R4 — bounded, deterministic track-continuity evidence.
+
+    Shadow-only.  No threshold, no gate, no production event use.
+    A "possible_id_switch" is a consecutive-in-buffer pair of observations
+    where the track_id differs.  This is NOT proof of a physical identity
+    change — it may be caused by tracker re-identification, occlusion,
+    or two distinct objects occupying the same entity-key slot.  The
+    field name is deliberately non-assertive.
+
+    All values are derived from the bounded BoundedObservationBuffer and
+    are recomputed on every record_observation call.
+    """
+    track_ids: Tuple[int, ...] = ()
+    observation_count: int = 0
+    possible_id_switch_count: int = 0
+    max_observation_gap_seconds: Optional[float] = None
+    primary_track_id: Optional[int] = None
+
+    def to_dict(self) -> Dict:
+        d: Dict = {
+            "track_ids": list(self.track_ids),
+            "observation_count": self.observation_count,
+            "possible_id_switch_count": self.possible_id_switch_count,
+            "primary_track_id": self.primary_track_id,
+        }
+        if self.max_observation_gap_seconds is not None:
+            d["max_observation_gap_seconds"] = self.max_observation_gap_seconds
+        return d
+
+
+# ---------------------------------------------------------------------------
 # Candidate
 # ---------------------------------------------------------------------------
 
@@ -295,6 +331,9 @@ class Candidate:
     # Phase 2B.4 — video-time at which the current cooldown window expires.
     # Set by CooldownPolicy.enter_cooldown(); None means no active cooldown.
     cooldown_expiry_video_time: Optional[float] = None
+    # Phase 2E-R4 — bounded, deterministic track-continuity evidence.
+    # Recomputed on every record_observation call; not read by any gate.
+    continuity: "TrackContinuity" = field(default_factory=TrackContinuity)
 
     # -- convenience accessors (no policy, no confirmation) --
 
@@ -340,6 +379,7 @@ class Candidate:
             "association_score": self.association_score,
             "event_confidence": self.event_confidence,
             "cooldown_expiry_video_time": self.cooldown_expiry_video_time,
+            "continuity": self.continuity.to_dict(),
         }
 
 
@@ -639,6 +679,94 @@ class AssociationEvidenceSummary:
 
 
 # ---------------------------------------------------------------------------
+# Phase 2E-R6 — EventConfidenceEvidence
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class EventConfidenceEvidence:
+    """Phase 2E-R6 — evidence-only representation for a future calibrated
+    event-confidence score.
+
+    This structure preserves the *inputs* to a future scoring function
+    without computing a score.  `event_confidence` stays None until an
+    explicitly calibrated scoring/operating-point policy exists.  A high
+    model detection confidence does NOT automatically become a high event
+    confidence.
+
+    `scoring_status` is "not_calibrated" in the current implementation.
+    No weighted formula (e.g. 0.4*confidence + 0.3*persistence + …) is
+    used or implied.
+
+    Fields:
+        observation_count       — raw count of observations in the candidate window.
+        confidence_stats        — detection confidence distribution (mean/min/max/count).
+        video_time_span         — temporal duration of the candidate window (seconds).
+        continuity              — TrackContinuity evidence (R4).
+        association_status      — AssociationStatus value string, or None if not supplied.
+        association_score       — AssociationResult.score; stays None unless explicitly injected.
+        confirmation_decision   — ConfirmationDecisionEvidence (gate outcomes); None if not supplied.
+        event_confidence        — Always None until a calibrated scoring policy exists.
+        scoring_status          — "not_calibrated" (the only valid value today).
+    """
+    observation_count: int
+    confidence_stats: ConfidenceStats
+    video_time_span: float
+    continuity: TrackContinuity
+    association_status: Optional[str] = None
+    association_score: Optional[float] = None
+    confirmation_decision: Optional[ConfirmationDecisionEvidence] = None
+    event_confidence: Optional[float] = None
+    scoring_status: str = "not_calibrated"
+
+    @classmethod
+    def from_candidate(
+        cls,
+        candidate: "Candidate",
+        association_result: Optional["AssociationResult"] = None,
+        confirmation_decision: Optional[ConfirmationDecisionEvidence] = None,
+    ) -> "EventConfidenceEvidence":
+        """Build evidence from an existing Candidate without computing a score.
+
+        association_result and confirmation_decision are optional; their
+        absence is represented explicitly as None.
+        """
+        assoc_status: Optional[str] = None
+        assoc_score: Optional[float] = None
+        if association_result is not None:
+            assoc_status = association_result.status.value
+            assoc_score = association_result.score  # stays None unless injected
+
+        return cls(
+            observation_count=candidate.observation_count(),
+            confidence_stats=candidate.confidence_stats(),
+            video_time_span=candidate.video_time_span(),
+            continuity=candidate.continuity,
+            association_status=assoc_status,
+            association_score=assoc_score,
+            confirmation_decision=confirmation_decision,
+            event_confidence=None,  # no calibrated formula
+            scoring_status="not_calibrated",
+        )
+
+    def to_dict(self) -> Dict:
+        result: Dict = {
+            "observation_count": self.observation_count,
+            "confidence_stats": self.confidence_stats.to_dict(),
+            "video_time_span": self.video_time_span,
+            "continuity": self.continuity.to_dict(),
+            "association_status": self.association_status,
+            "association_score": self.association_score,
+            "event_confidence": self.event_confidence,
+            "scoring_status": self.scoring_status,
+        }
+        if self.confirmation_decision is not None:
+            result["confirmation_decision"] = self.confirmation_decision.to_dict()
+        else:
+            result["confirmation_decision"] = None
+        return result
+
+
+# ---------------------------------------------------------------------------
 # Phase 2B.6 — HumanEvidenceMetadata
 # ---------------------------------------------------------------------------
 
@@ -736,6 +864,8 @@ class EvidenceBundle:
     association: Optional[AssociationEvidenceSummary] = None
     human: Optional[HumanEvidenceMetadata] = None
     identity: Optional[TrackIdentityEvidence] = None
+    # -- Phase 2E-R6: event-confidence evidence (evidence-only, no score) --
+    event_confidence_evidence: Optional[EventConfidenceEvidence] = None
 
     def to_dict(self) -> Dict:
         """Flat dict for serialization; None values indicate not-yet-generated.
@@ -766,6 +896,11 @@ class EvidenceBundle:
         result["association"] = self.association.to_dict() if self.association is not None else None
         result["human"] = self.human.to_dict() if self.human is not None else None
         result["identity"] = self.identity.to_dict() if self.identity is not None else None
+        result["event_confidence_evidence"] = (
+            self.event_confidence_evidence.to_dict()
+            if self.event_confidence_evidence is not None
+            else None
+        )
         return result
 
 
@@ -781,6 +916,8 @@ __all__ = [
     "CandidateState",
     "ConfidenceStats",
     "Candidate",
+    "TrackContinuity",
+    "EventConfidenceEvidence",
     "EventRecord",
     "GateOutcome",
     "ConfirmationDecisionEvidence",

@@ -164,7 +164,7 @@ class PredictionRecord:
             end_val   = end   if end   is not None else 0.0
 
         entity_key = d.get("entity_key")
-        return cls(
+        return PredictionRecord(
             prediction_id=d.get("event_id", ""),
             video_id=video_id,
             start_video_time=start_val,

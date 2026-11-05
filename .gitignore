@@ -1,59 +1,76 @@
-# Python
+# ─── Python ───────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
-*.pyc
+*.pyo
+
+# ─── Testing ──────────────────────────────────────────────────────────────────
 .pytest_cache/
+.coverage
+htmlcov/
 
-# Model weights / large binaries
-*.pt
-*.onnx
-*.bin
-*.safetensors
-*.weights
+# ─── Virtual environments ─────────────────────────────────────────────────────
+.venv/
+venv/
+env/
 
-# Video files
+# ─── Model weights (external storage — not committed) ─────────────────────────
+# Place trained model files here manually:
+#   inference/models/pose-70s.pt
+#   inference/models/v8s-object.pt
+# See inference/models/README.md for instructions.
+inference/models/*.pt
+inference/models/*.onnx
+inference/models/*.engine
+inference/models/*.bin
+inference/models/*.safetensors
+inference/models/*.weights
+
+# ─── Video / media files (all kept locally) ───────────────────────────────────
 *.mp4
 *.avi
 *.mov
 *.mkv
 *.webm
+.jpg
 
-# Archives
+# ─── Archives ──────────────────────────────────────────────────────────────────
 *.zip
 *.tar
 *.tar.gz
 *.7z
 
-# Generated output images & logs
-inference/output/*
-!inference/output/benchmark_results.json
-inference-annotation/output/
-*_detection_log.csv
-detection_log.txt
+# ─── Runtime logs (regenerated on every run) ──────────────────────────────────
 detection_log*.txt
+*_detection_log.csv
 
-# Datasets (if present at root level)
+# ─── Sample input / annotation outputs (kept locally) ────────────────────────
+inference/input/
+inference-annotation/output/*
+!inference-annotation/output/.gitkeep
+
+# ─── Generated inference outputs (images, crops, room frames) ─────────────────
+inference/output/**
+!inference/output/benchmark_results.json
+!inference/output/**/.gitkeep
+
+# ─── Datasets (if present at repo root) ───────────────────────────────────────
 datasets/
 data/
 
-# IDE / OS
+# ─── IDE / OS ──────────────────────────────────────────────────────────────────
 .idea/
 .vscode/
 .DS_Store
+Thumbs.db
 *.swp
 
-# Environment
+# ─── Environment secrets ───────────────────────────────────────────────────────
 .env
 *.env
 
-# Logs
+# ─── Log files ─────────────────────────────────────────────────────────────────
 *.log
 logs/
 
-# Work-in-progress planning / audit docs (not meant for repo)
-PHASE2A_EVENT_ARCHITECTURE.md
-PHASE2C1_GROUND_TRUTH.md
-audit_py_section.md
-implementation-plan.md
-inference-audit.md
-CHANGELOG_FIXES.md
+# ─── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/

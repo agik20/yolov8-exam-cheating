@@ -6,6 +6,10 @@ independent of the current working directory from which it is launched.
 """
 import os
 
+#_INFER_PARENT = C:\Users\ardut\projects\yolov8-exam-cheating\inference\config
+
+#INFER_ROOT = C:\Users\ardut\projects\yolov8-exam-cheating\inference
+
 # The inference root = the parent of the config/ directory (i.e. .../yolov8-exam-cheating/inference).
 _INFER_PARENT = os.path.dirname(os.path.abspath(__file__))
 INFER_ROOT = os.path.dirname(_INFER_PARENT)

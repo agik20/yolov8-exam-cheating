@@ -228,9 +228,16 @@ class CheatingDetectionPipeline:
             # observation-recording calls become no-ops; the legacy
             # event path is completely unaffected either way.
             try:
+                # Phase 2E-R2 — use configured buffer size when shadow_config is set;
+                # otherwise keep the legacy hardcoded structural default of 32.
+                buffer_maxlen = (
+                    self.shadow_config.candidate_buffer.observation_buffer_maxlen
+                    if self.shadow_config is not None
+                    else 32
+                )
                 self._candidate_layer = CandidateLayer(
                     src_fps=src_fps,
-                    observation_buffer_maxlen=32,   # ~1 s at 30 fps — structural bound
+                    observation_buffer_maxlen=buffer_maxlen,
                 )
                 # Phase 2B.4 — create the shadow lifecycle manager.
                 # Additive: uses the same layer + existing confirmation policy

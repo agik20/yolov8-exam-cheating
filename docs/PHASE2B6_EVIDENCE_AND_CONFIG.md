@@ -301,3 +301,53 @@ Run:
 ```bash
 python -m pytest tests/ -q
 ```
+
+---
+
+## 4. Phase 2E-R3 — `visibility_cutoff` Provenance
+
+### 4.1 Finding
+
+`ShadowConfig.build_associator()` falls back to `visibility_cutoff=0.3` when
+`AssociationConfig.visibility_cutoff` is `None`. This fallback value is a
+**structural default**, not a calibrated threshold. Before R3 this fallback
+was not explicitly represented in the `PersonObjectAssociator`, making it
+impossible to distinguish "no value supplied — used structural default" from
+"operator explicitly set 0.3".
+
+### 4.2 Resolution
+
+A new `visibility_cutoff_provisional: bool = False` keyword argument was added
+to `PersonObjectAssociator.__init__`. `build_associator()` now passes
+`visibility_cutoff_provisional=True` only when the None-fallback path is taken.
+
+| `AssociationConfig.visibility_cutoff` | `build_associator` behavior | `visibility_cutoff_is_provisional` |
+|--------------------------------------|----------------------------|------------------------------------|
+| `None`                                | falls back to 0.3         | `True` (provisional / uncalibrated) |
+| `0.3` (explicit)                      | uses 0.3                  | `False` (configured, NOT calibrated) |
+| `0.5` or any explicit value           | uses that value           | `False` (configured, NOT calibrated) |
+| Direct `PersonObjectAssociator()`     | class default 0.3         | `False` (class owns its default)   |
+
+### 4.3 Key Distinction: Configured ≠ Calibrated
+
+> Supplying a numeric value (even 0.3) does **not** mark it as calibrated.
+> Phase 2C.4 calibration produces operating points via grid sweep.
+> Until a value originates from that process it must be represented as
+> *configured*, not *calibrated*.
+
+`visibility_cutoff_is_provisional` mirrors the existing
+`MatchingPolicy.is_provisional` pattern: it records provenance only and
+does **not** gate association behavior. All association results are
+identical whether or not the flag is set.
+
+### 4.4 Numerical Behavior
+
+The operational value `0.3` is unchanged in all cases. No behavior was
+modified. No new hard gate was introduced.
+
+### 4.5 Status
+
+- State: **provisional / uncalibrated**
+- Calibration: **not yet performed**
+- Production use: **not approved as a calibrated operating point**
+- Shadow-only: association results are in-memory; no production event path is affected

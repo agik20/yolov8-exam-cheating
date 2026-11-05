@@ -564,6 +564,7 @@ class PersonObjectAssociator:
         visibility_cutoff: float = 0.3,
         hand_keypoint_indices: Tuple[int, ...] = HAND_KEYPOINT_INDICES,
         reference_scale: Optional[float] = None,
+        visibility_cutoff_provisional: bool = False,
     ) -> None:
         if containment_threshold is not None and not (0.0 <= containment_threshold <= 1.0):
             raise ValueError(
@@ -582,6 +583,22 @@ class PersonObjectAssociator:
         self._visibility_cutoff = visibility_cutoff
         self._hand_indices = hand_keypoint_indices
         self._reference_scale = reference_scale if reference_scale is not None else 1.0
+        self._visibility_cutoff_provisional = visibility_cutoff_provisional
+
+    @property
+    def visibility_cutoff_is_provisional(self) -> bool:
+        """True when ``visibility_cutoff`` was filled in by the
+        ``build_associator()`` fallback (i.e. ``AssociationConfig.visibility_cutoff``
+        was None).  An explicitly supplied numeric value — even 0.3 — is
+        *configured*, not *provisional*; it has not gone through a
+        Phase 2C calibration sweep and must not be represented as
+        calibrated.
+
+        This mirrors ``MatchingPolicy.is_provisional``: the flag records
+        provenance, it does not gate behavior.  Association results are
+        identical whether or not this flag is set.
+        """
+        return self._visibility_cutoff_provisional
 
     # ------------------------------------------------------------------
     # Core API

@@ -43,8 +43,50 @@ from .events import (
     CandidateState,
     Candidate,
     ConfidenceStats,
+    TrackContinuity,
 )
 from .cooldown import CooldownPolicy
+
+
+# ---------------------------------------------------------------------------
+# Phase 2E-R4 — TrackContinuity computation
+# ---------------------------------------------------------------------------
+
+def _compute_continuity(buffer: BoundedObservationBuffer) -> TrackContinuity:
+    """Deterministically compute TrackContinuity from the bounded buffer.
+
+    O(N) where N = len(buffer) <= observation_buffer_maxlen.  All values
+    are derived purely from the retained observations; no external state.
+    """
+    obs_list = buffer.all()
+    if not obs_list:
+        return TrackContinuity()
+
+    track_ids = tuple(sorted({o.track_id for o in obs_list}))
+    primary = obs_list[0].track_id  # oldest observation in buffer
+
+    if len(obs_list) < 2:
+        return TrackContinuity(
+            track_ids=track_ids,
+            observation_count=1,
+            possible_id_switch_count=0,
+            max_observation_gap_seconds=None,
+            primary_track_id=primary,
+        )
+
+    switches = sum(
+        1 for a, b in zip(obs_list, obs_list[1:]) if a.track_id != b.track_id
+    )
+    max_gap = max(b.video_time - a.video_time
+                  for a, b in zip(obs_list, obs_list[1:]))
+
+    return TrackContinuity(
+        track_ids=track_ids,
+        observation_count=len(obs_list),
+        possible_id_switch_count=switches,
+        max_observation_gap_seconds=max_gap,
+        primary_track_id=primary,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -248,6 +290,7 @@ class CandidateLayer:
             cand.state = CandidateState.CANDIDATE
 
         cand.add_observation(obs)
+        cand.continuity = _compute_continuity(cand.observations)
         self._touch_lru(key)
         return cand
 

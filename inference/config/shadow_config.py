@@ -88,7 +88,10 @@ class AssociationConfig:
     """
     containment_threshold: Optional[float] = None
     keypoint_distance_threshold: Optional[float] = None
-    visibility_cutoff: Optional[float] = None   # None -> default 0.3 at build time
+    # Phase 2E-R3: None → build_associator() falls back to 0.3 and flags the
+    # resulting associator as provisional (visibility_cutoff_is_provisional=True).
+    # An explicit numeric value (even 0.3) is "configured" — NOT "calibrated".
+    visibility_cutoff: Optional[float] = None
     reference_scale: Optional[float] = None
 
     def __post_init__(self) -> None:
@@ -200,18 +203,28 @@ class ShadowConfig:
         """Return a ``PersonObjectAssociator`` from the association sub-config.
 
         Unpopulated thresholds stay None (gate not enforced).
+
+        Phase 2E-R3: when ``visibility_cutoff`` is None the builder falls
+        back to the structural default 0.3 and sets
+        ``visibility_cutoff_provisional=True`` on the returned associator.
+        An explicitly configured numeric value (even 0.3) is *configured*,
+        not *provisional* — the flag records provenance only, it does not
+        change association behavior.
         """
         from inference.core.association import PersonObjectAssociator
 
-        visibility_cutoff = (
-            self.association.visibility_cutoff
-            if self.association.visibility_cutoff is not None
-            else 0.3
-        )
+        if self.association.visibility_cutoff is not None:
+            visibility_cutoff: float = self.association.visibility_cutoff
+            provisional: bool = False
+        else:
+            # Structural fallback — NOT a calibrated value.
+            visibility_cutoff = 0.3
+            provisional = True
 
         return PersonObjectAssociator(
             containment_threshold=self.association.containment_threshold,
             keypoint_distance_threshold=self.association.keypoint_distance_threshold,
             visibility_cutoff=visibility_cutoff,
             reference_scale=self.association.reference_scale,
+            visibility_cutoff_provisional=provisional,
         )

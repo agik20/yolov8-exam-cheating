@@ -321,6 +321,16 @@ class CalibrationReport:
     candidate_configuration: Dict[str, Any]
     parameter_status: Dict[str, str]
 
+    @property
+    def provenance(self) -> Dict[str, Any]:
+        return {
+            "calibration_version": self.calibration_version,
+            "dataset_version": self.dataset_version,
+            "artifact_version": self.artifact_version,
+            "artifact_identifier": self.artifact_identifier,
+            "timestamp_utc": self.timestamp_utc,
+        }
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "calibration_version": self.calibration_version,

@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>YOLOv8 Exam-Cheating Dashboard</title>
+<style>
+:root {
+  --bg:#0f1117; --panel:#161b22; --border:#30363d;
+  --text:#c9d1d9; --muted:#6e7681; --accent:#58a6ff;
+  --green:#3fb950; --red:#f85149; --yellow:#d29900; --cyan:#39d2c0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+     background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── Layout ── */
+.container{max-width:1200px;margin:0 auto;padding:0 1rem 2rem}
+
+header{display:flex;align-items:center;gap:.75rem;padding:.75rem 0 1rem;
+       border-bottom:1px solid var(--border);margin-bottom:1rem}
+header h1{font-size:1.1rem;font-weight:600}
+.badge{display:inline-block;padding:.15rem .5rem;border-radius:12px;
+       font-size:.72rem;font-weight:600;letter-spacing:.02em}
+.badge-live{background:rgba(63,185,80,.15);color:var(--green)}
+.badge-off{background:rgba(248,81,73,.15);color:var(--red)}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1rem;flex-wrap:wrap}
+.tab{padding:.55rem 1rem;font-size:.85rem;color:var(--muted);cursor:pointer;
+     border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.pane{display:none}
+.pane.active{display:block}
+
+/* ── Cards ── */
+.card{background:var(--panel);border:1px solid var(--border);
+      border-radius:8px;padding:1rem;margin-bottom:1rem}
+.card h2{font-size:.82rem;text-transform:uppercase;letter-spacing:.06em;
+         color:var(--muted);margin-bottom:.75rem}
+.card h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;
+         color:var(--muted);margin:.8rem 0 .4rem}
+.kv{display:grid;grid-template-columns:200px 1fr;gap:.4rem .75rem;font-size:.85rem}
+.kv dt{color:var(--muted)}
+.kv dd{font-weight:500}
+.kv dd.none{color:var(--yellow);font-weight:400;font-style:italic}
+.kv dd.err{color:var(--red);font-weight:400}
+
+/* ── Stat row ── */
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+       gap:.75rem;margin-bottom:1rem}
+.stat{background:var(--panel);border:1px solid var(--border);
+      border-radius:8px;padding:.9rem 1rem;text-align:center}
+.stat .val{font-size:1.5rem;font-weight:700;color:var(--accent)}
+.stat .lbl{font-size:.72rem;color:var(--muted);margin-top:.25rem;
+           text-transform:uppercase;letter-spacing:.05em}
+
+/* ── Video ── */
+.video-wrap{background:#000;border:1px solid var(--border);border-radius:8px;
+            overflow:hidden;margin-bottom:1rem}
+.video-wrap img{display:block;width:100%;min-height:180px}
+.video-wrap .placeholder{display:flex;align-items:center;justify-content:center;
+                        min-height:180px;color:var(--muted);font-size:.9rem}
+
+/* ── Table ── */
+table{width:100%;border-collapse:collapse;font-size:.83rem}
+th,td{padding:.45rem .6rem;border-bottom:1px solid var(--border);text-align:left}
+th{color:var(--muted);font-weight:600;font-size:.75rem;text-transform:uppercase}
+tr:hover td{background:rgba(88,166,255,.06)}
+.clickable{cursor:pointer}
+.status-dot{display:inline-block;width:.5rem;height:.5rem;border-radius:50%;margin-right:.35rem;vertical-align:middle}
+.dot-green{background:var(--green)} .dot-red{background:var(--red)}
+.dot-yellow{background:var(--yellow)} .dot-muted{background:var(--muted)}
+
+/* ── Status pills ── */
+.pill{display:inline-block;padding:.1rem .45rem;border-radius:10px;
+      font-size:.72rem;font-weight:600;margin-left:.4rem}
+.pill-ok{background:rgba(63,185,80,.15);color:var(--green)}
+.pill-none{background:rgba(110,118,129,.2);color:var(--muted)}
+.pill-warn{background:rgba(210,153,0,.15);color:var(--yellow)}
+.pill-err{background:rgba(220,80,60,.15);color:var(--red,#e44)}
+.pill-red{background:rgba(248,81,73,.15);color:var(--red)}
+
+/* ── Detail panel ── */
+.detail{margin-top:1rem}
+.detail h3{font-size:.9rem;margin:.8rem 0 .5rem;color:var(--accent)}
+
+/* ── Sub-section grid in event detail ── */
+.evidence-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:.5rem}
+@media(max-width:700px){.evidence-grid{grid-template-columns:1fr}}
+.evidence-box{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.75rem}
+.evidence-box h4{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;
+                 color:var(--muted);margin-bottom:.5rem}
+
+/* ── Buttons (disabled state) ── */
+.btn{padding:.45rem 1rem;font-size:.82rem;border-radius:6px;border:1px solid var(--border);
+     background:var(--panel);color:var(--muted);cursor:not-allowed;opacity:.55}
+.btn-note{font-size:.75rem;color:var(--muted);margin-top:.5rem}
+
+/* ── Loading / error ── */
+.loading{color:var(--muted);font-size:.85rem;padding:.5rem 0}
+.error{color:var(--red);font-size:.85rem;padding:.5rem 0}
+
+/* ── Responsive ── */
+@media(max-width:640px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .kv{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>YOLOv8 Exam-Cheating Dashboard</h1>
+  <span id="status-badge" class="badge badge-off">offline</span>
+</header>
+
+<nav class="tabs">
+  <div class="tab active" data-tab="dashboard">Dashboard</div>
+  <div class="tab" data-tab="events">Events</div>
+  <div class="tab" data-tab="input">Input / Processing</div>
+  <div class="tab" data-tab="config">Configuration</div>
+  <div class="tab" data-tab="calibration">Calibration</div>
+</nav>
+
+<!-- DASHBOARD -->
+<div id="pane-dashboard" class="pane active">
+  <div class="video-wrap" id="video-container">
+    <div class="placeholder">Waiting for stream…</div>
+  </div>
+  <div class="stats" id="stats-row"></div>
+  <div class="card">
+    <h2>Pipeline Status</h2>
+    <dl class="kv" id="status-kv"><dd class="loading">Loading…</dd></dl>
+  </div>
+  <div class="card">
+    <h2>Active Tracks</h2>
+    <div id="tracks-summary"><span class="loading">Loading…</span></div>
+  </div>
+  <div class="card">
+    <h2>Recent Shadow Events</h2>
+    <div id="recent-events"><span class="loading">Loading…</span></div>
+  </div>
+</div>
+
+<!-- EVENTS -->
+<div id="pane-events" class="pane">
+  <div class="card">
+    <h2>Shadow Events</h2>
+    <div id="events-table-wrap"><span class="loading">Loading…</span></div>
+    <div id="event-detail" class="detail"></div>
+  </div>
+</div>
+
+<!-- INPUT / PROCESSING -->
+<div id="pane-input" class="pane">
+  <div class="card">
+    <h2>Processing Status</h2>
+    <dl class="kv" id="input-status-kv"><dd class="loading">Loading…</dd></dl>
+  </div>
+  <div class="card">
+    <h2>Video Source Control</h2>
+    <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">
+      The pipeline starts automatically on boot via <code>inference/main.py</code>.
+      No API endpoint is available to start, stop, or select a video source.
+    </p>
+    <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+      <button class="btn" disabled>Start Processing</button>
+      <button class="btn" disabled>Stop Processing</button>
+    </div>
+    <p class="btn-note">Not available via API — pipeline is controlled at boot only.</p>
+  </div>
+  <div class="card">
+    <h2>Live Stream</h2>
+    <div class="video-wrap" id="input-video-wrap">
+      <div class="placeholder">Video stream not available when offline.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIGURATION -->
+<div id="pane-config" class="pane">
+  <div class="card">
+    <h2>Environment / Backend</h2>
+    <dl class="kv" id="env-info"><dd class="loading">Loading…</dd></dl>
+  </div>
+  <div class="card">
+    <h2>Legacy Configuration <span style="font-weight:400;text-transform:none;font-size:.72rem;color:var(--muted)">— production constants</span></h2>
+    <div id="legacy-config"><span class="loading">Loading…</span></div>
+  </div>
+  <div class="card">
+    <h2>Shadow Configuration</h2>
+    <div id="shadow-config"><span class="loading">Loading…</span></div>
+  </div>
+</div>
+
+<!-- CALIBRATION -->
+<div id="pane-calibration" class="pane">
+  <div class="card">
+    <h2>GT Dataset Readiness</h2>
+    <div id="calib-readiness"><span class="loading">Loading…</span></div>
+  </div>
+  <div class="card">
+    <h2>R10 Blockers</h2>
+    <div id="calib-blockers"><span class="loading">Loading…</span></div>
+  </div>
+  <div class="card">
+    <h2>Operating Point</h2>
+    <p style="font-size:.85rem;color:var(--muted)">
+      <span class="pill pill-none">Not available</span>
+      Calibration operating point and metrics are not exposed until R10 executes
+      with a valid GroundTruthDataset. No values are shown here to avoid fabricating results.
+    </p>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+/* ─────────────────────────────────────────────────────────────────────────
+   API helper
+   ───────────────────────────────────────────────────────────────────────── */
+async function api(path) {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Pill helpers — consistent status labels
+   ───────────────────────────────────────────────────────────────────────── */
+function pillConfigured()  { return '<span class="pill pill-ok">configured</span>'; }
+function pillNotCalib()    { return '<span class="pill pill-warn">not calibrated</span>'; }
+function pillUnavailable() { return '<span class="pill pill-none">unavailable</span>'; }
+function pillProvisional() { return '<span class="pill pill-warn">provisional</span>'; }
+function pillRunning()     { return '<span class="pill pill-ok">running</span>'; }
+function pillStopped()     { return '<span class="pill pill-err">stopped</span>'; }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Tab switching
+   ───────────────────────────────────────────────────────────────────────── */
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('pane-' + tab.dataset.tab).classList.add('active');
+    if (tab.dataset.tab === 'events' && !window._eventsLoaded) loadEvents();
+    if (tab.dataset.tab === 'config' && !window._configLoaded)  loadConfig();
+    if (tab.dataset.tab === 'calibration' && !window._calibLoaded) loadCalibration();
+    if (tab.dataset.tab === 'input' && !window._inputLoaded)   loadInput();
+  });
+});
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Dashboard: status polling + active tracks + recent events
+   ───────────────────────────────────────────────────────────────────────── */
+async function loadStatus() {
+  const badge = document.getElementById('status-badge');
+  try {
+    const s = await api('/api/status');
+    badge.className = 'badge badge-live';
+    badge.textContent = 'running';
+
+    // video stream
+    const wrap = document.getElementById('video-container');
+    if (!wrap.querySelector('img')) {
+      wrap.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = '/video_feed';
+      img.alt = 'Live video stream';
+      wrap.appendChild(img);
+    }
+
+    // stats row
+    document.getElementById('stats-row').innerHTML = [
+      ['Frame', s.frame_idx],
+      ['Source FPS', s.src_fps != null ? s.src_fps.toFixed(1) : '—'],
+      ['Process FPS', s.processing_fps != null ? s.processing_fps.toFixed(2) : '—'],
+      ['Pose Tracks', s.pose_tracks],
+      ['Obj Tracks', s.object_tracks],
+      ['Shadow Events', s.shadow_event_count],
+    ].map(([lbl,val]) =>
+      `<div class="stat"><div class="val">${val}</div><div class="lbl">${lbl}</div></div>`
+    ).join('');
+
+    // status kv
+    const rows = [
+      ['Running', s.running ? pillRunning() : pillStopped()],
+      ['Frame Index', s.frame_idx],
+      ['Source FPS', s.src_fps != null ? s.src_fps.toFixed(1) : 'Not available'],
+      ['Processing FPS', s.processing_fps != null ? s.processing_fps.toFixed(2) : 'Not available'],
+      ['Elapsed (s)', s.elapsed_seconds],
+      ['Active Pose Tracks', s.pose_tracks],
+      ['Active Object Tracks', s.object_tracks],
+      ['Shadow Events', s.shadow_event_count],
+    ];
+    document.getElementById('status-kv').innerHTML =
+      '<div>' + rows.map(([k,v]) =>
+        `<dt>${k}</dt><dd${v==='Not available'?' class="none"':''}>${v}</dd>`
+      ).join('') + '</div>';
+
+    // active tracks
+    await loadActiveTracks();
+
+    // recent events (last 5)
+    const evRes = await api('/api/events');
+    const events = evRes.events || [];
+    const recent = document.getElementById('recent-events');
+    if (!events.length) {
+      recent.innerHTML = '<span style="color:var(--muted);font-size:.85rem">No shadow events recorded yet.</span>';
+    } else {
+      const rowsHtml = events.slice(-5).reverse().map(ev =>
+        `<tr class="clickable" onclick="showEvent('${ev.event_id}')">
+           <td><span class="status-dot ${ev.gate_confirmed?'dot-green':'dot-yellow'}"></span></td>
+           <td>${ev.entity_key}</td>
+           <td>${ev.class_name}</td>
+           <td>${ev.confidence_stats?.mean?.toFixed(3) ?? 'Not calibrated'}</td>
+           <td>${ev.recorded_at_video_time?.toFixed(1) ?? '—'}s</td>
+           <td>${ev.gate_confirmed ? 'confirmed' : 'rejected'}</td>
+         </tr>`
+      ).join('');
+      recent.innerHTML = `<table><thead><tr>
+        <th></th><th>Entity</th><th>Class</th><th>Mean Conf</th><th>Time</th><th>Gate</th>
+      </tr></thead><tbody>${rowsHtml}</tbody></table>`;
+    }
+
+    // sync input tab status
+    syncInputStatus(s);
+  } catch(e) {
+    badge.className = 'badge badge-off';
+    badge.textContent = 'offline';
+    document.getElementById('status-kv').innerHTML =
+      '<dd class="err">Backend unavailable: ' + e.message + '</dd>';
+    document.getElementById('tracks-summary').innerHTML =
+      '<span class="error">Track data unavailable.</span>';
+    document.getElementById('recent-events').innerHTML =
+      '<span class="error">Event data unavailable.</span>';
+  }
+}
+
+setInterval(loadStatus, 5000);
+loadStatus();
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Active Tracks
+   ───────────────────────────────────────────────────────────────────────── */
+async function loadActiveTracks() {
+  const el = document.getElementById('tracks-summary');
+  try {
+    const res = await api('/api/legacy-tracks');
+    const pose = res.pose || {};
+    const obj  = res.object || {};
+
+    const fmt = (v) => {
+      if (v == null) return '—';
+      if (typeof v === 'number') return v.toFixed(1);
+      return String(v);
+    };
+
+    const mkRows = (objData) =>
+      Object.entries(objData).map(([tid, v]) =>
+        `<tr>
+           <td style="font-family:monospace;font-size:.78rem">${tid}</td>
+           <td>${v.last_class ?? '—'}</td>
+           <td>${v.last_conf != null ? v.last_conf.toFixed(3) : 'Not available'}</td>
+           <td>${fmt(v.first_time)}</td>
+           <td>${fmt(v.last_saved)}</td>
+         </tr>`
+      ).join('');
+
+    if (!Object.keys(pose).length && !Object.keys(obj).length) {
+      el.innerHTML = '<span style="color:var(--muted);font-size:.85rem">No active tracks.</span>';
+      return;
+    }
+
+    el.innerHTML = `
+      <div class="evidence-grid">
+        <div class="evidence-box">
+          <h4>Pose Tracks ${Object.keys(pose).length ? pillConfigured() : pillUnavailable()}</h4>
+          ${Object.keys(pose).length
+            ? `<table><thead><tr><th>ID</th><th>Class</th><th>Conf</th><th>First</th><th>Last</th></tr></thead>
+               <tbody>${mkRows(pose)}</tbody></table>`
+            : '<span style="font-size:.8rem;color:var(--muted)">No active pose tracks.</span>'}
+        </div>
+        <div class="evidence-box">
+          <h4>Object Tracks ${Object.keys(obj).length ? pillConfigured() : pillUnavailable()}</h4>
+          ${Object.keys(obj).length
+            ? `<table><thead><tr><th>ID</th><th>Class</th><th>Conf</th><th>First</th><th>Last</th></tr></thead>
+               <tbody>${mkRows(obj)}</tbody></table>`
+            : '<span style="font-size:.8rem;color:var(--muted)">No active object tracks.</span>'}
+        </div>
+      </div>`;
+  } catch(e) {
+    el.innerHTML = '<span class="error">Unable to load tracks: ' + e.message + '</span>';
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Events tab — list + detail
+   ───────────────────────────────────────────────────────────────────────── */
+async function loadEvents() {
+  window._eventsLoaded = true;
+  const wrap = document.getElementById('events-table-wrap');
+  try {
+    const res = await api('/api/events');
+    const events = res.events || [];
+    if (!events.length) {
+      wrap.innerHTML = '<span style="color:var(--muted)">No shadow events yet.</span>';
+      return;
+    }
+    const rowsHtml = events.map(ev =>
+      `<tr class="clickable" onclick="showEvent('${ev.event_id}')">
+         <td><span class="status-dot ${ev.gate_confirmed?'dot-green':'dot-yellow'}"></span>
+             ${ev.gate_confirmed?'confirmed':'rejected'}</td>
+         <td style="font-family:monospace;font-size:.75rem">${ev.event_id}</td>
+         <td>${ev.entity_key}</td>
+         <td>${ev.class_name}</td>
+         <td>${ev.confidence_stats?.mean?.toFixed(3) ?? 'Not calibrated'}</td>
+         <td>${ev.recorded_at_video_time?.toFixed(1) ?? '—'}s</td>
+       </tr>`
+    ).join('');
+    wrap.innerHTML = `<table><thead><tr>
+      <th>Gate</th><th>Event ID</th><th>Entity</th><th>Class</th>
+      <th>Mean Conf</th><th>Time</th>
+    </tr></thead><tbody>${rowsHtml}</tbody></table>`;
+  } catch(e) {
+    wrap.innerHTML = '<span class="error">Unable to load events: ' + e.message + '</span>';
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Event Detail — full evidence_bundle display
+   ───────────────────────────────────────────────────────────────────────── */
+async function showEvent(eventId) {
+  const detail = document.getElementById('event-detail');
+  detail.innerHTML = '<span class="loading">Loading…</span>';
+  try {
+    const res = await api('/api/events/' + encodeURIComponent(eventId));
+    const ev   = res.event;
+    const conf = ev.confidence_stats || {};
+    const eb   = ev.evidence_bundle;
+
+    const confPill = conf.mean == null ? pillNotCalib() : pillConfigured();
+
+    let evidenceHtml = '';
+    if (eb) {
+      const identity    = eb.identity || null;
+      const association = eb.association || null;
+      const evConf      = eb.event_confidence_evidence || null;
+      const decision    = eb.decision || null;
+
+      // track continuity
+      const tcTrackIds = identity?.track_ids ?? eb.track_ids_in_window ?? null;
+      const tcPrimary  = identity?.primary_track_id ?? null;
+      const tcSwitches = identity?.possible_id_switch_count ?? eb.id_switch_count ?? null;
+      const tcPill = tcTrackIds ? pillConfigured() : pillUnavailable();
+
+      // association
+      const assocStatus = association?.status ?? null;
+      const assocScore  = association?.association_score ?? ev.association_score ?? null;
+      const assocPill = assocScore != null
+        ? pillConfigured()
+        : (assocStatus ? pillProvisional() : pillUnavailable());
+
+      // event-confidence evidence
+      const evConfObs    = evConf?.observation_count ?? null;
+      const evConfStats  = evConf?.confidence_stats || {};
+      const evConfSpan   = evConf?.video_time_span ?? null;
+      const evConfScore  = evConf?.event_confidence ?? ev.event_confidence ?? null;
+      const evConfStatus = evConf?.scoring_status ?? 'not_calibrated';
+      const evConfPill   = evConfScore != null ? pillConfigured() : pillNotCalib();
+
+      // decision / confirmation terms
+      const termsMet = eb.confirmation_terms_met || (decision?.confirmation_terms_met) || null;
+      const decisionPill = termsMet ? pillConfigured() : pillUnavailable();
+
+      evidenceHtml = `
+        <div class="evidence-grid">
+          <div class="evidence-box">
+            <h4>Track Continuity ${tcPill}</h4>
+            <dl class="kv">
+              <dt>Track IDs</dt>
+              <dd${tcTrackIds ? '' : ' class="none"'}>
+                ${tcTrackIds ? tcTrackIds.join(', ') : 'Not measured'}</dd>
+              <dt>Primary Track</dt>
+              <dd${tcPrimary != null ? '' : ' class="none"'}>
+                ${tcPrimary != null ? tcPrimary : 'Not measured'}</dd>
+              <dt>ID Switches</dt>
+              <dd${tcSwitches != null ? '' : ' class="none"'}>
+                ${tcSwitches != null ? tcSwitches : 'Not measured'}
+                ${tcSwitches != null && tcSwitches > 0 ? pillProvisional() : ''}</dd>
+            </dl>
+          </div>
+
+          <div class="evidence-box">
+            <h4>Association Evidence ${assocPill}</h4>
+            <dl class="kv">
+              <dt>Status</dt>
+              <dd${assocStatus ? '' : ' class="none"'}>
+                ${assocStatus ?? 'Not available'}
+                ${assocStatus ? '' : pillUnavailable()}</dd>
+              <dt>Score</dt>
+              <dd${assocScore != null ? '' : ' class="none"'}>
+                ${assocScore != null ? assocScore.toFixed(4) : 'Not calibrated'}
+                ${assocScore != null ? '' : pillNotCalib()}</dd>
+              <dt>Person Entity</dt>
+              <dd${association?.person_entity ? '' : ' class="none"'}>
+                ${association?.person_entity ?? 'Not available'}</dd>
+              <dt>Object Entity</dt>
+              <dd${association?.object_entity ? '' : ' class="none"'}>
+                ${association?.object_entity ?? 'Not available'}</dd>
+            </dl>
+          </div>
+
+          <div class="evidence-box">
+            <h4>Event-Confidence Evidence ${evConfPill}</h4>
+            <dl class="kv">
+              <dt>Scoring Status</dt>
+              <dd${evConfScore == null ? ' class="none"':''}>
+                ${evConfStatus}
+                ${evConfScore == null ? pillNotCalib() : pillConfigured()}</dd>
+              <dt>Event Confidence</dt>
+              <dd${evConfScore != null ? '' : ' class="none"'}>
+                ${evConfScore != null ? evConfScore.toFixed(4) : 'No calibrated formula'}</dd>
+              <dt>Observation Count</dt>
+              <dd${evConfObs != null ? '' : ' class="none"'}>
+                ${evConfObs != null ? evConfObs : 'Not available'}</dd>
+              <dt>Conf. Mean</dt>
+              <dd${evConfStats.mean != null ? '' : ' class="none"'}>
+                ${evConfStats.mean != null ? evConfStats.mean.toFixed(4) : 'Not available'}</dd>
+              <dt>Video Time Span</dt>
+              <dd${evConfSpan != null ? '' : ' class="none"'}>
+                ${evConfSpan != null ? JSON.stringify(evConfSpan) : 'Not available'}</dd>
+            </dl>
+          </div>
+
+          <div class="evidence-box">
+            <h4>Confirmation Decision ${decisionPill}</h4>
+            <dl class="kv">
+              <dt>Terms Met</dt>
+              <dd${termsMet ? '' : ' class="none"'}>
+                ${termsMet ? termsMet.join(', ') : 'Not available'}</dd>
+              <dt>Gate Confirmed</dt>
+              <dd>${ev.gate_confirmed ? 'yes' : 'no'}
+                ${ev.gate_confirmed ? pillConfigured() : pillProvisional()}</dd>
+              <dt>Gate Reason</dt>
+              <dd>${ev.gate_reason ?? '—'}</dd>
+              <dt>Unmet Requirements</dt>
+              <dd>${(ev.gate_unmet_requirements||[]).length
+                    ? ev.gate_unmet_requirements.join(', ')
+                    : 'None'}</dd>
+            </dl>
+          </div>
+
+          <div class="evidence-box" style="grid-column:1/-1">
+            <h4>Evidence Files</h4>
+            <dl class="kv">
+              <dt>Annotated Frame</dt>
+              <dd${eb.annotated_frame_path ? '' : ' class="none"'}>
+                ${eb.annotated_frame_path || 'Not generated'}
+                ${eb.annotated_frame_path ? '' : pillUnavailable()}</dd>
+              <dt>Crop Path</dt>
+              <dd${eb.crop_path ? '' : ' class="none"'}>
+                ${eb.crop_path || 'Not generated'}
+                ${eb.crop_path ? '' : pillUnavailable()}</dd>
+              <dt>Person-Object Crop</dt>
+              <dd${eb.person_object_pair_crop_path ? '' : ' class="none"'}>
+                ${eb.person_object_pair_crop_path || 'Not generated'}
+                ${eb.person_object_pair_crop_path ? '' : pillUnavailable()}</dd>
+              <dt>Temporal Summary</dt>
+              <dd${eb.temporal_summary ? '' : ' class="none"'}>
+                ${eb.temporal_summary || 'Not available'}</dd>
+            </dl>
+          </div>
+        </div>`;
+    } else {
+      evidenceHtml = `
+        <div class="evidence-box" style="grid-column:1/-1">
+          <h4>Evidence Bundle ${pillUnavailable()}</h4>
+          <p style="font-size:.85rem;color:var(--muted)">
+            No evidence bundle was attached to this event.
+          </p>
+        </div>`;
+    }
+
+    detail.innerHTML = `
+      <h3>Event ${ev.event_id}</h3>
+      <dl class="kv">
+        <dt>Entity Key</dt><dd>${ev.entity_key}</dd>
+        <dt>Class</dt><dd>${ev.class_name}</dd>
+        <dt>Recorded At</dt><dd>${ev.recorded_at_video_time?.toFixed(2) ?? '—'}s</dd>
+        <dt>Confirmation Time</dt>
+        <dd${ev.confirmation_video_time != null ? '' : ' class="none"'}>
+          ${ev.confirmation_video_time != null ? ev.confirmation_video_time.toFixed(2) + 's' : 'Not available'}</dd>
+        <dt>Observation Count</dt>
+        <dd${ev.observation_count != null ? '' : ' class="none"'}>
+          ${ev.observation_count != null ? ev.observation_count : 'Not available'}</dd>
+        <dt>Contributing Tracks</dt>
+        <dd${(ev.contributing_track_ids||[]).length ? '' : ' class="none"'}>
+          ${ev.contributing_track_ids?.length ? ev.contributing_track_ids.join(', ') : 'Not available'}</dd>
+        <dt>Mean Confidence</dt>
+        <dd${conf.mean==null?' class="none"':''}>
+          ${conf.mean?.toFixed(4) ?? 'Not calibrated'} ${confPill}</dd>
+        <dt>Std / Min / Max</dt>
+        <dd${conf.std==null?' class="none"':''}>
+          ${conf.std != null ? conf.std.toFixed(4) : '—'} /
+          ${conf.min != null ? conf.min.toFixed(4) : '—'} /
+          ${conf.max != null ? conf.max.toFixed(4) : '—'}</dd>
+      </dl>
+      ${evidenceHtml}`;
+  } catch(e) {
+    detail.innerHTML = '<span class="error">Event not found or unavailable.</span>';
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Input / Processing tab
+   ───────────────────────────────────────────────────────────────────────── */
+function syncInputStatus(s) {
+  window._inputLoaded = true;
+  const el = document.getElementById('input-status-kv');
+  const rows = [
+    ['Pipeline Running', s.running ? pillRunning() : pillStopped()],
+    ['Frame Index', s.frame_idx],
+    ['Source FPS', s.src_fps != null ? s.src_fps.toFixed(1) : 'Not available'],
+    ['Processing FPS', s.processing_fps != null ? s.processing_fps.toFixed(2) : 'Not available'],
+    ['Elapsed (s)', s.elapsed_seconds],
+    ['Pose Tracks', s.pose_tracks],
+    ['Object Tracks', s.object_tracks],
+    ['Shadow Events', s.shadow_event_count],
+  ];
+  el.innerHTML = '<div>' + rows.map(([k,v]) =>
+    `<dt>${k}</dt><dd${v==='Not available'?' class="none"':''}>${v}</dd>`
+  ).join('') + '</div>';
+
+  const wrap = document.getElementById('input-video-wrap');
+  if (s.running && !wrap.querySelector('img')) {
+    wrap.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = '/video_feed';
+    img.alt = 'Live video stream';
+    wrap.appendChild(img);
+  }
+}
+
+async function loadInput() {
+  window._inputLoaded = true;
+  try {
+    const s = await api('/api/status');
+    syncInputStatus(s);
+  } catch(e) {
+    document.getElementById('input-status-kv').innerHTML =
+      '<dd class="err">Backend unavailable: ' + e.message + '</dd>';
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Config tab
+   ───────────────────────────────────────────────────────────────────────── */
+async function loadConfig() {
+  window._configLoaded = true;
+  await loadEnvironment();
+  try {
+    const res = await api('/api/config');
+
+    const legacy = res.legacy;
+    const legacyRows = [
+      ['POSE Classes', (legacy.POSE_CLASSES||[]).join(', ') || 'Not available'],
+      ['OBJ Classes',  (legacy.OBJECT_CLASSES||[]).join(', ') || 'Not available'],
+      ['CONF_THRESH_POSE', legacy.CONF_THRESH_POSE],
+      ['CONF_THRESH_OBJ',  legacy.CONF_THRESH_OBJ],
+      ['NMS IoU',          legacy.NMS_IOU_THRESHOLD],
+      ['POSE Cooldown (s)', legacy.POSE_COOLDOWN],
+      ['OBJ Cooldown (s)',  legacy.OBJECT_COOLDOWN],
+      ['Required Detection Time (s)', legacy.REQUIRED_DETECTION_TIME],
+    ];
+    document.getElementById('legacy-config').innerHTML =
+      '<dl class="kv">' + legacyRows.map(([k,v]) =>
+        `<dt>${k}</dt><dd>${v}</dd>`
+      ).join('') + '</dl>';
+
+    const sh = res.shadow;
+    const section = (title, obj) => {
+      if (!obj) {
+        return `<h4 style="font-size:.78rem;color:var(--muted);margin:.6rem 0 .3rem">
+          ${title} ${pillUnavailable()}</h4>
+          <p style="font-size:.8rem;color:var(--muted)">
+            ${title} section is unavailable — ShadowConfig was not provided or the
+            section was not configured.</p>`;
+      }
+      const rowsHtml = Object.entries(obj).map(([k,v]) => {
+        let pill;
+        if (v == null)                             pill = pillNotCalib();
+        else if (Array.isArray(v) && v.length === 0) pill = pillProvisional();
+        else                                         pill = pillConfigured();
+        const valStr = v == null ? '<em>n/a</em>'
+          : Array.isArray(v) ? v.join(', ')
+          : JSON.stringify(v);
+        return `<dt>${k}</dt><dd>${valStr} ${pill}</dd>`;
+      }).join('');
+      return `<h4 style="font-size:.78rem;color:var(--muted);margin:.6rem 0 .3rem">${title}</h4>
+              <dl class="kv">${rowsHtml}</dl>`;
+    };
+    let html = '';
+    if (!sh) {
+      html = '<p style="color:var(--muted)">No ShadowConfig was injected into this pipeline instance. '
+          + pillUnavailable() + '</p>';
+    } else {
+      html += section('Confirmation', sh.confirmation);
+      html += section('Cooldown', sh.cooldown);
+      html += section('Association', sh.association);
+      html += section('Candidate Buffer', sh.candidate_buffer);
+    }
+    document.getElementById('shadow-config').innerHTML = html;
+  } catch(e) {
+    document.getElementById('legacy-config').innerHTML =
+      '<span class="error">Unable to load legacy config.</span>';
+    document.getElementById('shadow-config').innerHTML =
+      '<span class="error">' + e.message + '</span>';
+  }
+}
+
+async function loadEnvironment() {
+  const el = document.getElementById('env-info');
+  try {
+    const res = await api('/api/environment');
+    const rows = [
+      ['Platform', res.platform],
+      ['OS', res.os],
+      ['Hostname', res.hostname],
+      ['Python', res.python_version?.split(' ')[0] ?? res.python_version ?? 'Not available'],
+      ['Torch', res.torch_version ?? 'Not available'],
+      ['CUDA Available', res.cuda_available != null ? (res.cuda_available ? 'yes' : 'no') : 'Not available'],
+      ['Device', res.device ?? 'Not available'],
+      ['Ultralytics', res.ultralytics_version ?? 'Not available'],
+      ['OpenCV', res.opencv_version ?? 'Not available'],
+      ['NumPy', res.numpy_version ?? 'Not available'],
+      ['Flask', res.flask_version ?? 'Not available'],
+      ['CPU', res.cpu_info ?? 'Not available'],
+      ['RAM', res.ram_info ?? 'Not available'],
+    ];
+    el.innerHTML = '<div>' + rows.map(([k,v]) =>
+      `<dt>${k}</dt><dd${v==='Not available'?' class="none"':''}>${v}</dd>`
+    ).join('') + '</div>';
+  } catch(e) {
+    el.innerHTML = '<dd class="err">Environment info unavailable: ' + e.message + '</dd>';
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Calibration tab
+   ───────────────────────────────────────────────────────────────────────── */
+async function loadCalibration() {
+  window._calibLoaded = true;
+  try {
+    const res = await api('/api/calibration');
+    const r = res.readiness;
+    const ready = r.usable_for_r10;
+    document.getElementById('calib-readiness').innerHTML = `
+      <div style="margin-bottom:.75rem">
+        ${ready
+          ? '<span class="badge badge-live">READY for R10</span>'
+          : '<span class="badge badge-off">NOT READY</span>'}
+      </div>
+      <dl class="kv">
+        <dt>Videos</dt><dd>${r.video_count}</dd>
+        <dt>Incidents</dt><dd>${r.incident_count}</dd>
+        <dt>Normal Periods</dt><dd>${r.normal_period_count}</dd>
+        <dt>Ambiguous Periods</dt><dd>${r.ambiguous_period_count}</dd>
+        <dt>Schema Errors</dt><dd>${r.schema_error_count}</dd>
+      </dl>`;
+    const blockers = res.r10_blockers || [];
+    document.getElementById('calib-blockers').innerHTML = blockers.length
+      ? '<ul style="list-style:none;padding:0">' +
+        blockers.map(b =>
+          `<li style="padding:.35rem 0;border-bottom:1px solid var(--border);
+                     font-size:.85rem;display:flex;align-items:center;gap:.5rem">
+             <span class="status-dot dot-red"></span>${b}</li>`
+        ).join('') + '</ul>'
+      : '<span style="color:var(--muted);font-size:.85rem">No blockers — dataset is ready.</span>';
+  } catch(e) {
+    document.getElementById('calib-readiness').innerHTML =
+      '<span class="error">Calibration data unavailable: ' + e.message + '</span>';
+    document.getElementById('calib-blockers').innerHTML =
+      '<span class="error">' + e.message + '</span>';
+  }
+}
+</script>
+</body>
+</html>
